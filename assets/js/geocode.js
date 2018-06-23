@@ -199,6 +199,7 @@ function drawRoute(e) {
       renderer.setDirections(result);
     }
   });
+}
 
 //   initiate Lyft API call
 
@@ -206,7 +207,8 @@ function lyftCall(e) {
     // Prevent form submission
     e.preventDefault();
 
-  axios.get(`https://api.lyft.com/v1/cost?start_lat=${lat}&start_lng=-${lng}&end_lat=${endlat}&end_lng=${endlng}`, {
+  // axios.get(`https://api.lyft.com/v1/cost?start_lat=${lat}&start_lng=-${lng}&end_lat=${endlat}&end_lng=${endlng}`, {
+    axios.get(`https://api.lyft.com/v1/cost?start_lat=37.7763&start_lng=-122.3918&end_lat=37.7972&end_lng=-122.4533`, {
         params: {
           start_lat: lat,
           start_lng: lng,
@@ -219,4 +221,3 @@ function lyftCall(e) {
           console.log(response);
         });
     }
-}
