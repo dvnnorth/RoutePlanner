@@ -171,16 +171,19 @@ function geocode(e) {
       console.log(error);
     });
 
+
+    
 }
 
 function drawRoute(e) {
   // Prevent form submission
   e.preventDefault();
-
+  initMap();
   var directions = new google.maps.DirectionsService();
   var renderer = new google.maps.DirectionsRenderer();
   var address = document.getElementById('address').value;
   var destination = document.getElementById('destination').value;
+
 
   directions.route({
     origin: address,
