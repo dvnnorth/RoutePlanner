@@ -10,27 +10,27 @@ function initMap() {
   var geocoder = new google.maps.Geocoder();
 
   // Center map on user location
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function (position) {
-      var pos = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-      map.setCenter(pos);
-    }, function () {
-      handleLocationError(true, infoWindow, map.getCenter());
-    });
-  } else {
-    // Browser doesn't support Geolocation
-    handleLocationError(false, infoWindow, map.getCenter());
-  }
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(function (position) {
+  //       var pos = {
+  //         lat: position.coords.latitude,
+  //         lng: position.coords.longitude
+  //       };
+  //       map.setCenter(pos);
+  //     }, function () {
+  //       handleLocationError(true, infoWindow, map.getCenter());
+  //     });
+  //   } else {
+  //     // Browser doesn't support Geolocation
+  //     handleLocationError(false, infoWindow, map.getCenter());
+  //   }
 
-/*  document.getElementById('submit').addEventListener('click', function () {
-    var address = document.getElementById('address').value;
-    var destination = document.getElementById('destination').value;
-    geocodeAddress(geocoder, map, address);
-    geocodeAddress(geocoder, map, destination);
-  });*/
+  /*  document.getElementById('submit').addEventListener('click', function () {
+      var address = document.getElementById('address').value;
+      var destination = document.getElementById('destination').value;
+      geocodeAddress(geocoder, map, address);
+      geocodeAddress(geocoder, map, destination);
+    });*/
 }
 
 /*function geocodeAddress(geocoder, resultsMap, address) {
@@ -65,6 +65,12 @@ var locationForm = document.getElementById('location-form');
 locationForm.addEventListener('submit', geocode);
 locationForm.addEventListener('submit', drawRoute);
 
+
+var startLat;
+var startLng;
+var endlat;
+var endlng;
+
 function geocode(e) {
   // Prevent actual submit
   e.preventDefault();
@@ -83,7 +89,7 @@ function geocode(e) {
   })
     .then(function (response) {
       // Log full response
-      console.log(response);
+      //console.log(response);
 
       // Formatted Address
       var formattedAddress = response.data.results[0].formatted_address;
@@ -104,13 +110,13 @@ function geocode(e) {
       addressComponentsOutput += '</ul>';
 
       // Geometry
-      var lat = response.data.results[0].geometry.location.lat;
-      var lng = response.data.results[0].geometry.location.lng;
+      startLat = response.data.results[0].geometry.location.lat;
+      startLng = response.data.results[0].geometry.location.lng;
       var geometryOutput = `
           <ul class="list-group">
             <li class="list-group-item"><strong>Starting Location</strong></li>
-            <li class="list-group-item"><strong>Latitude</strong>: ${lat}</li>
-            <li class="list-group-item"><strong>Longitude</strong>: ${lng}</li>
+            <li class="list-group-item"><strong>Latitude</strong>: ${startLat}</li>
+            <li class="list-group-item"><strong>Longitude</strong>: ${startLng}</li>
           </ul>
         `;
 
@@ -152,13 +158,13 @@ function geocode(e) {
       destinationAddressComponentsOutput += '</ul>';
 
       // Geometry
-      var lat = response.data.results[0].geometry.location.lat;
-      var lng = response.data.results[0].geometry.location.lng;
+      var endlat = response.data.results[0].geometry.location.lat;
+      var endlng = response.data.results[0].geometry.location.lng;
       var geometryOutput = `
           <ul class="list-group">
             <li class="list-group-item"><strong>Destination</strong></li>
-            <li class="list-group-item"><strong>Latitude</strong>: ${lat}</li>
-            <li class="list-group-item"><strong>Longitude</strong>: ${lng}</li>
+            <li class="list-group-item"><strong>Latitude</strong>: ${endlat}</li>
+            <li class="list-group-item"><strong>Longitude</strong>: ${endlng}</li>
           </ul>
         `;
 
@@ -166,13 +172,24 @@ function geocode(e) {
       // document.getElementById('formatted-address').innerHTML = formattedAddressOutput;
       // document.getElementById('address-components').innerHTML = addressComponentsOutput;
       document.getElementById('geometry').innerHTML += geometryOutput;
+
+
+      //   initiate Lyft API call
+
+      console.log(`checking lat long`, this.startLat, this.startLng, endlat, endlng);
+
+      axios.get(`https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endlat}&end_lng=${endlng}`)
+        .then(function (response) {
+          // Log full response
+          console.log(`lyft response`, response);
+        });
+
+
     })
     .catch(function (error) {
       console.log(error);
     });
 
-
-    
 }
 
 function drawRoute(e) {
@@ -196,3 +213,4 @@ function drawRoute(e) {
     }
   });
 }
+
