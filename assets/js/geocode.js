@@ -10,27 +10,27 @@ function initMap() {
   var geocoder = new google.maps.Geocoder();
 
   // Center map on user location
-//   if (navigator.geolocation) {
-//     navigator.geolocation.getCurrentPosition(function (position) {
-//       var pos = {
-//         lat: position.coords.latitude,
-//         lng: position.coords.longitude
-//       };
-//       map.setCenter(pos);
-//     }, function () {
-//       handleLocationError(true, infoWindow, map.getCenter());
-//     });
-//   } else {
-//     // Browser doesn't support Geolocation
-//     handleLocationError(false, infoWindow, map.getCenter());
-//   }
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(function (position) {
+  //       var pos = {
+  //         lat: position.coords.latitude,
+  //         lng: position.coords.longitude
+  //       };
+  //       map.setCenter(pos);
+  //     }, function () {
+  //       handleLocationError(true, infoWindow, map.getCenter());
+  //     });
+  //   } else {
+  //     // Browser doesn't support Geolocation
+  //     handleLocationError(false, infoWindow, map.getCenter());
+  //   }
 
-/*  document.getElementById('submit').addEventListener('click', function () {
-    var address = document.getElementById('address').value;
-    var destination = document.getElementById('destination').value;
-    geocodeAddress(geocoder, map, address);
-    geocodeAddress(geocoder, map, destination);
-  });*/
+  /*  document.getElementById('submit').addEventListener('click', function () {
+      var address = document.getElementById('address').value;
+      var destination = document.getElementById('destination').value;
+      geocodeAddress(geocoder, map, address);
+      geocodeAddress(geocoder, map, destination);
+    });*/
 }
 
 /*function geocodeAddress(geocoder, resultsMap, address) {
@@ -66,8 +66,8 @@ locationForm.addEventListener('submit', geocode);
 locationForm.addEventListener('submit', drawRoute);
 
 
-var lat;
-var lng;
+var startLat;
+var startLng;
 var endlat;
 var endlng;
 
@@ -89,7 +89,7 @@ function geocode(e) {
   })
     .then(function (response) {
       // Log full response
-      console.log(response);
+      //console.log(response);
 
       // Formatted Address
       var formattedAddress = response.data.results[0].formatted_address;
@@ -110,13 +110,13 @@ function geocode(e) {
       addressComponentsOutput += '</ul>';
 
       // Geometry
-       lat = response.data.results[0].geometry.location.lat;
-       lng = response.data.results[0].geometry.location.lng;
+      startLat = response.data.results[0].geometry.location.lat;
+      startLng = response.data.results[0].geometry.location.lng;
       var geometryOutput = `
           <ul class="list-group">
             <li class="list-group-item"><strong>Starting Location</strong></li>
-            <li class="list-group-item"><strong>Latitude</strong>: ${lat}</li>
-            <li class="list-group-item"><strong>Longitude</strong>: ${lng}</li>
+            <li class="list-group-item"><strong>Latitude</strong>: ${startLat}</li>
+            <li class="list-group-item"><strong>Longitude</strong>: ${startLng}</li>
           </ul>
         `;
 
@@ -176,26 +176,20 @@ function geocode(e) {
 
       //   initiate Lyft API call
 
-                axios.get(`https://api.lyft.com/v1/cost?start_lat=${lat}&start_lng=${lng}&end_lat=${endlat}&end_lng=${endlng}`, {
-                // axios.get(`https://api.lyft.com/v1/cost?start_lat=37.7763&start_lng=-122.3918&end_lat=37.7972&end_lng=-122.4533`, {
-                params: {
-                  start_lat: this.lat,
-                  start_lng: this.lng,
-                  end_lat: endlat,
-                  end_lng: endlng
-                }
-              })
-                .then(function (response) {
-                  // Log full response
-                  console.log(response);
-                });
-  
+      console.log(`checking lat long`, this.startLat, this.startLng, endlat, endlng);
+
+      axios.get(`https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endlat}&end_lng=${endlng}`)
+        .then(function (response) {
+          // Log full response
+          console.log(`lyft response`, response);
+        });
+
 
     })
     .catch(function (error) {
       console.log(error);
     });
-    
+
 }
 
 function drawRoute(e) {
