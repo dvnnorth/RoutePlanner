@@ -10,20 +10,20 @@ function initMap() {
   var geocoder = new google.maps.Geocoder();
 
   // Center map on user location
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function (position) {
-      var pos = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-      map.setCenter(pos);
-    }, function () {
-      handleLocationError(true, infoWindow, map.getCenter());
-    });
-  } else {
-    // Browser doesn't support Geolocation
-    handleLocationError(false, infoWindow, map.getCenter());
-  }
+//   if (navigator.geolocation) {
+//     navigator.geolocation.getCurrentPosition(function (position) {
+//       var pos = {
+//         lat: position.coords.latitude,
+//         lng: position.coords.longitude
+//       };
+//       map.setCenter(pos);
+//     }, function () {
+//       handleLocationError(true, infoWindow, map.getCenter());
+//     });
+//   } else {
+//     // Browser doesn't support Geolocation
+//     handleLocationError(false, infoWindow, map.getCenter());
+//   }
 
 /*  document.getElementById('submit').addEventListener('click', function () {
     var address = document.getElementById('address').value;
@@ -64,6 +64,12 @@ var locationForm = document.getElementById('location-form');
 // Listen for submit
 locationForm.addEventListener('submit', geocode);
 locationForm.addEventListener('submit', drawRoute);
+locationForm.addEventListener('submit', lyftCall);
+
+var lat;
+var lng;
+var endlat;
+var endlng;
 
 function geocode(e) {
   // Prevent actual submit
@@ -152,13 +158,13 @@ function geocode(e) {
       destinationAddressComponentsOutput += '</ul>';
 
       // Geometry
-      var lat = response.data.results[0].geometry.location.lat;
-      var lng = response.data.results[0].geometry.location.lng;
+      var endlat = response.data.results[0].geometry.location.lat;
+      var endlng = response.data.results[0].geometry.location.lng;
       var geometryOutput = `
           <ul class="list-group">
             <li class="list-group-item"><strong>Destination</strong></li>
-            <li class="list-group-item"><strong>Latitude</strong>: ${lat}</li>
-            <li class="list-group-item"><strong>Longitude</strong>: ${lng}</li>
+            <li class="list-group-item"><strong>Latitude</strong>: ${endlat}</li>
+            <li class="list-group-item"><strong>Longitude</strong>: ${endlng}</li>
           </ul>
         `;
 
@@ -170,8 +176,6 @@ function geocode(e) {
     .catch(function (error) {
       console.log(error);
     });
-
-
     
 }
 
@@ -195,4 +199,24 @@ function drawRoute(e) {
       renderer.setDirections(result);
     }
   });
+
+//   initiate Lyft API call
+
+function lyftCall(e) {
+    // Prevent form submission
+    e.preventDefault();
+
+  axios.get(`https://api.lyft.com/v1/cost?start_lat=${lat}&start_lng=-${lng}&end_lat=${endlat}&end_lng=${endlng}`, {
+        params: {
+          start_lat: lat,
+          start_lng: lng,
+          end_lat: endlat,
+          end_lng: endlng
+        }
+      })
+        .then(function (response) {
+          // Log full response
+          console.log(response);
+        });
+    }
 }
