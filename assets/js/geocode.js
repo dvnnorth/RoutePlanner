@@ -64,7 +64,7 @@ var locationForm = document.getElementById('location-form');
 // Listen for submit
 locationForm.addEventListener('submit', geocode);
 locationForm.addEventListener('submit', drawRoute);
-locationForm.addEventListener('submit', lyftCall);
+
 
 var lat;
 var lng;
@@ -110,8 +110,8 @@ function geocode(e) {
       addressComponentsOutput += '</ul>';
 
       // Geometry
-      var lat = response.data.results[0].geometry.location.lat;
-      var lng = response.data.results[0].geometry.location.lng;
+       lat = response.data.results[0].geometry.location.lat;
+       lng = response.data.results[0].geometry.location.lng;
       var geometryOutput = `
           <ul class="list-group">
             <li class="list-group-item"><strong>Starting Location</strong></li>
@@ -172,6 +172,25 @@ function geocode(e) {
       // document.getElementById('formatted-address').innerHTML = formattedAddressOutput;
       // document.getElementById('address-components').innerHTML = addressComponentsOutput;
       document.getElementById('geometry').innerHTML += geometryOutput;
+
+
+      //   initiate Lyft API call
+
+                axios.get(`https://api.lyft.com/v1/cost?start_lat=${lat}&start_lng=${lng}&end_lat=${endlat}&end_lng=${endlng}`, {
+                // axios.get(`https://api.lyft.com/v1/cost?start_lat=37.7763&start_lng=-122.3918&end_lat=37.7972&end_lng=-122.4533`, {
+                params: {
+                  start_lat: this.lat,
+                  start_lng: this.lng,
+                  end_lat: endlat,
+                  end_lng: endlng
+                }
+              })
+                .then(function (response) {
+                  // Log full response
+                  console.log(response);
+                });
+  
+
     })
     .catch(function (error) {
       console.log(error);
@@ -201,23 +220,3 @@ function drawRoute(e) {
   });
 }
 
-//   initiate Lyft API call
-
-function lyftCall(e) {
-    // Prevent form submission
-    e.preventDefault();
-
-  // axios.get(`https://api.lyft.com/v1/cost?start_lat=${lat}&start_lng=-${lng}&end_lat=${endlat}&end_lng=${endlng}`, {
-    axios.get(`https://api.lyft.com/v1/cost?start_lat=37.7763&start_lng=-122.3918&end_lat=37.7972&end_lng=-122.4533`, {
-        params: {
-          start_lat: lat,
-          start_lng: lng,
-          end_lat: endlat,
-          end_lng: endlng
-        }
-      })
-        .then(function (response) {
-          // Log full response
-          console.log(response);
-        });
-    }
