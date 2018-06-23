@@ -182,6 +182,27 @@ function geocode(e) {
         .then(function (response) {
           // Log full response
           console.log(`lyft response`, response);
+          var fare = response.data.cost_estimates[0].estimated_cost_cents_max;
+          var distance = response.data.cost_estimates[0].estimated_distance_miles;
+          var timeOfTravel = response.data.cost_estimates[0].estimated_duration_seconds;
+          console.log(fare/100);
+          console.log(distance);
+          console.log(timeOfTravel);
+          document.getElementById("results").innerHTML = `  <div class="row">
+          <div class="col s12 m6">
+            <div class="card blue-grey darken-1">
+              <div class="card-content white-text">
+                <span class="information">Lyft Fare:</span>
+                <ul>
+                <li>${fare/100} dollars</li>
+                <li>${distance} miles</li>
+                <li>${timeOfTravel}</li>
+                </ul>
+              </div>
+            
+            </div>
+          </div>
+        </div>`
         });
 
 
