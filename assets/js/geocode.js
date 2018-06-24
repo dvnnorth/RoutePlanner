@@ -158,8 +158,8 @@ function geocode(e) {
       destinationAddressComponentsOutput += '</ul>';
 
       // Geometry
-      var endlat = response.data.results[0].geometry.location.lat;
-      var endlng = response.data.results[0].geometry.location.lng;
+      endlat = response.data.results[0].geometry.location.lat;
+      endlng = response.data.results[0].geometry.location.lng;
       var geometryOutput = `
           <ul class="list-group">
             <li class="list-group-item"><strong>Destination</strong></li>
@@ -178,12 +178,46 @@ function geocode(e) {
 
       console.log(`checking lat long`, this.startLat, this.startLng, endlat, endlng);
 
-      axios.get(`https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endlat}&end_lng=${endlng}`)
-        .then(function (response) {
-          // Log full response
-          console.log(`lyft response`, response);
-        });
 
+      // initiate lyft api request
+
+          axios.get(`https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endlat}&end_lng=${endlng}`)
+            .then(function (response) {
+              // Log full response
+              console.log(`lyft response`, response);
+            });
+
+      // initiate Uber api request
+
+            //   axios.get(`https://api.uber.com/v1.2/estimates/price?start_latitude=${startLat}&start_longitude=${startLng}&end_latitude=${endlat}&end_longitude=${endlng}`, {
+                
+            //       Headers: {
+            //       Authorization: "Token v-UA8A2to_68Jm6Tpn03GQ0wi52HBB0oA1f1v91a"
+            //       },
+            //       async: true,
+            //       crossDomain: true,
+                
+            //   })
+            // .then(function (response) {
+            //   // Log full response
+            //   console.log(`Uber response`, response);
+            // });
+            
+            var settings = {
+              "async": true,
+              "crossDomain": true,
+              "url": `https://api.uber.com/v1.2/estimates/price?start_latitude=${startLat}&start_longitude=${startLng}&end_latitude=${endlat}&end_longitude=${endlng}`,
+              "method": "GET",
+              "headers": {
+                "authorization": "Token v-UA8A2to_68Jm6Tpn03GQ0wi52HBB0oA1f1v91a",
+                "cache-control": "no-cache",
+                "postman-token": "a4c6b084-95d7-d347-a347-1875be72a17b"
+              }
+            }
+            
+            $.ajax(settings).done(function (response) {
+              console.log(`Uber response`, response);
+            });
 
     })
     .catch(function (error) {
