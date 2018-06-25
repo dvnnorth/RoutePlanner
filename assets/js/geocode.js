@@ -191,7 +191,7 @@ function geocode(e) {
 
       // console.log(`checking lat long`, this.startLat, this.startLng, endlat, endlng);
 
-      axios.get(`https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endlat}&end_lng=${endlng}`)
+      axios.get(`https://cors-anywhere.herokuapp.com/https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endlat}&end_lng=${endlng}`)
         .then(function (response) {
           // Log full response
           // console.log(`lyft response`, response);
