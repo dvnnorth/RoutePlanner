@@ -39,6 +39,16 @@ function centerMap() {
 // On document ready
 $(function () {
 
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyDOcmop4p_nzMkawGuhYapfv0qI-u9z9Xs",
+    authDomain: "routeplanner-90220.firebaseapp.com",
+    databaseURL: "https://routeplanner-90220.firebaseio.com",
+    projectId: "routeplanner-90220",
+    storageBucket: "routeplanner-90220.appspot.com",
+    messagingSenderId: "331751820596"
+  };
+
   // Initialize the map
   var map;
   function initMap() {
