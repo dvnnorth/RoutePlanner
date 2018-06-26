@@ -1,250 +1,212 @@
-// Initialize the map
-var map, infoWindow;
-function initMap() {
+// Google Maps API Callback
+function centerMap() {
+
+  // Initialize map
   map = new google.maps.Map(document.getElementById('map'), {
     center: { lat: 37.7749, lng: -122.4194 },
     zoom: 10
   });
+
   infoWindow = new google.maps.InfoWindow;
 
+  // Store the geocoder
   var geocoder = new google.maps.Geocoder();
 
-  // Center map on user location
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition(function (position) {
-  //       var pos = {
-  //         lat: position.coords.latitude,
-  //         lng: position.coords.longitude
-  //       };
-  //       map.setCenter(pos);
-  //     }, function () {
-  //       handleLocationError(true, infoWindow, map.getCenter());
-  //     });
-  //   } else {
-  //     // Browser doesn't support Geolocation
-  //     handleLocationError(false, infoWindow, map.getCenter());
-  //   }
-
-  /*  document.getElementById('submit').addEventListener('click', function () {
-      var address = document.getElementById('address').value;
-      var destination = document.getElementById('destination').value;
-      geocodeAddress(geocoder, map, address);
-      geocodeAddress(geocoder, map, destination);
-    });*/
-}
-
-/*function geocodeAddress(geocoder, resultsMap, address) {
-  geocoder.geocode({ 'address': address }, function (results, status) {
-    if (status === 'OK') {
-      resultsMap.setCenter(results[0].geometry.location);
-      var marker = new google.maps.Marker({
-        map: resultsMap,
-        position: results[0].geometry.location
+  // If the navigator successfully loaded, then center the map and prefill start location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      var pos = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      map.setCenter(pos);
+      geocoder.geocode({
+        location: {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        }
+      }, function (results, status) {
+        if (status === 'OK') {
+          $(`#address`).val(results[0].formatted_address);
+        }
       });
-    } else {
-      alert('Geocode was not successful for the following reason: ' + status);
-    }
-  });
-}*/
-
-function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-  infoWindow.setPosition(pos);
-  infoWindow.setContent(browserHasGeolocation ?
-    'Error: The Geolocation service failed.' :
-    'Error: Your browser doesn\'t support geolocation.');
-  infoWindow.open(map);
+    }, function () {
+      console.log(`Location Retrieval Failed`);
+    });
+  }
 }
 
-// Call Geocode
-//geocode();
+// On document ready
+$(function () {
 
-// Get location form
-var locationForm = document.getElementById('location-form');
-
-// Listen for submit
-locationForm.addEventListener('submit', geocode);
-locationForm.addEventListener('submit', drawRoute);
-
-
-var startLat;
-var startLng;
-var endlat;
-var endlng;
-
-function geocode(e) {
-  // Prevent actual submit
-  e.preventDefault();
-
-  var location = document.getElementById('address').value;
-  var destination = document.getElementById('destination').value;
-
-  // Initialize display
-  document.getElementById('geometry').innerHTML = "";
-
-  axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
-    params: {
-      address: location,
-      key: 'AIzaSyAaODN8BfiLaVS7586DIEwayLiCIuVBWzw'
-    }
-  })
-    .then(function (response) {
-      // Log full response
-      //console.log(response);
-
-      // Formatted Address
-      var formattedAddress = response.data.results[0].formatted_address;
-      var formattedAddressOutput = `
-          <ul class="list-group">
-            <li class="list-group-item">${formattedAddress}</li>
-          </ul>
-        `;
-
-      // Address Components
-      var addressComponents = response.data.results[0].address_components;
-      var addressComponentsOutput = '<ul class="list-group">';
-      for (var i = 0; i < addressComponents.length; i++) {
-        addressComponentsOutput += `
-            <li class="list-group-item"><strong>${addressComponents[i].types[0]}</strong>: ${addressComponents[i].long_name}</li>
-          `;
-      }
-      addressComponentsOutput += '</ul>';
-
-      // Geometry
-      startLat = response.data.results[0].geometry.location.lat;
-      startLng = response.data.results[0].geometry.location.lng;
-      var geometryOutput = `
-          <ul class="list-group">
-            <li class="list-group-item"><strong>Starting Location</strong></li>
-            <li class="list-group-item"><strong>Latitude</strong>: ${startLat}</li>
-            <li class="list-group-item"><strong>Longitude</strong>: ${startLng}</li>
-          </ul>
-        `;
-
-      // Output to app
-      // document.getElementById('formatted-address').innerHTML = formattedAddressOutput;
-      // document.getElementById('address-components').innerHTML = addressComponentsOutput;
-      document.getElementById('geometry').innerHTML += geometryOutput;
-    })
-    .catch(function (error) {
-      console.log(error);
+  // Initialize the map
+  var map;
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: { lat: 37.7749, lng: -122.4194 },
+      zoom: 10
     });
+  }
 
-  axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
-    params: {
-      address: destination,
-      key: 'AIzaSyAaODN8BfiLaVS7586DIEwayLiCIuVBWzw'
+  // Get location form
+  var locationForm = document.getElementById('location-form');
+
+  // Listen for submit
+  locationForm.addEventListener('submit', onSubmit);
+
+  // Do the geocoding for the addresses and make the Lyft API call
+  function geocode(e) {
+
+    // Prevent actual submit
+    e.preventDefault();
+
+    // Get the values of the "to" and "from" text inputs
+    var location = document.getElementById('address').value;
+    var destination = document.getElementById('destination').value;
+
+    // Initialize output
+    if ($(`#output`)) {
+      $(`#output`).remove();
     }
-  })
-    .then(function (response) {
-      // Log full response
-      console.log(response);
 
-      // Formatted Address
-      var formattedDestinationAddress = response.data.results[0].formatted_address;
-      var formattedDestinationAddressOutput = `
-          <ul class="list-group">
-            <li class="list-group-item">${formattedDestinationAddress}</li>
-          </ul>
-        `;
+    var startLat, startLng, endLat, endLng;
 
-      // Address Components
-      var destinationAddressComponents = response.data.results[0].address_components;
-      var destinationAddressComponentsOutput = '<ul class="list-group">';
-      for (var i = 0; i < destinationAddressComponents.length; i++) {
-        destinationAddressComponentsOutput += `
-            <li class="list-group-item"><strong>${destinationAddressComponents[i].types[0]}</strong>: ${destinationAddressComponents[i].long_name}</li>
-          `;
+    // Use Axios.js AJAX to get location geocode
+    // Welcome to the "promise land"
+
+    // Get starting location geocode
+    axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+      params: {
+        address: location,
+        key: 'AIzaSyAaODN8BfiLaVS7586DIEwayLiCIuVBWzw'
       }
-      destinationAddressComponentsOutput += '</ul>';
+    }).then(function (locationResponse) {
 
-      // Geometry
-      endlat = response.data.results[0].geometry.location.lat;
-      endlng = response.data.results[0].geometry.location.lng;
-      var geometryOutput = `
-          <ul class="list-group">
-            <li class="list-group-item"><strong>Destination</strong></li>
-            <li class="list-group-item"><strong>Latitude</strong>: ${endlat}</li>
-            <li class="list-group-item"><strong>Longitude</strong>: ${endlng}</li>
-          </ul>
-        `;
+      // Get destination geocode
+      axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+        params: {
+          address: destination,
+          key: 'AIzaSyAaODN8BfiLaVS7586DIEwayLiCIuVBWzw'
+        }
+      }).then(function (destinationResponse) {
 
-      // Output to app
-      // document.getElementById('formatted-address').innerHTML = formattedAddressOutput;
-      // document.getElementById('address-components').innerHTML = addressComponentsOutput;
-      document.getElementById('geometry').innerHTML += geometryOutput;
+        // Get coordinates from responses
+        startLat = locationResponse
+          .data
+          .results[0]
+          .geometry
+          .location
+          .lat;
 
+        startLng = locationResponse
+          .data
+          .results[0]
+          .geometry
+          .location
+          .lng;
 
-      //   initiate Lyft API call
+        endLat = destinationResponse
+          .data
+          .results[0]
+          .geometry
+          .location
+          .lat;
 
-      console.log(`checking lat long`, this.startLat, this.startLng, endlat, endlng);
+        endLng = destinationResponse
+          .data
+          .results[0]
+          .geometry
+          .location
+          .lng;
 
+        // Use Axios.js AJAX get method for Lyft API call
+        axios.get(`https://cors-anywhere.herokuapp.com/https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endLat}&end_lng=${endLng}`)
+          .then(function (lyftResponse) {
 
-      // initiate lyft api request
+            // list will contain the data from the Lyft response or an error message
+            var list;
 
-          axios.get(`https://api.lyft.com/v1/cost?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endlat}&end_lng=${endlng}`)
-            .then(function (response) {
-              // Log full response
-              console.log(`lyft response`, response);
-            });
-
-      // initiate Uber api request
-
-            //   axios.get(`https://api.uber.com/v1.2/estimates/price?start_latitude=${startLat}&start_longitude=${startLng}&end_latitude=${endlat}&end_longitude=${endlng}`, {
-                
-            //       Headers: {
-            //       Authorization: "Token v-UA8A2to_68Jm6Tpn03GQ0wi52HBB0oA1f1v91a"
-            //       },
-            //       async: true,
-            //       crossDomain: true,
-                
-            //   })
-            // .then(function (response) {
-            //   // Log full response
-            //   console.log(`Uber response`, response);
-            // });
-            
-            var settings = {
-              "async": true,
-              "crossDomain": true,
-              "url": `https://api.uber.com/v1.2/estimates/price?start_latitude=${startLat}&start_longitude=${startLng}&end_latitude=${endlat}&end_longitude=${endlng}`,
-              "method": "GET",
-              "headers": {
-                "authorization": "Token v-UA8A2to_68Jm6Tpn03GQ0wi52HBB0oA1f1v91a",
-                "cache-control": "no-cache",
-                "postman-token": "a4c6b084-95d7-d347-a347-1875be72a17b"
-              }
+            // If the response from Lyft has no data, show error, else show data
+            if (lyftResponse.data.cost_estimates.length === 0) {
+              list = list = $(`<ul>`)
+                .append($(`<li>`).text(`Lyft can't take you on this trip...`));
+              addLyftCard(false, list);
             }
-            
-            $.ajax(settings).done(function (response) {
-              console.log(`Uber response`, response);
-            });
-
-    })
-    .catch(function (error) {
-      console.log(error);
+            else {
+              var fareMin = lyftResponse.data.cost_estimates[0].estimated_cost_cents_min;
+              var fareMax = lyftResponse.data.cost_estimates[0].estimated_cost_cents_max;
+              var distance = lyftResponse.data.cost_estimates[0].estimated_distance_miles;
+              var timeOfTravel = lyftResponse.data.cost_estimates[0].estimated_duration_seconds;
+              list = $(`<ul>`)
+                .append($(`<li>`).text(`$${fareMin / 100} - $${fareMax / 100}`))
+                .append($(`<li>`).text(`${distance} miles`))
+                .append($(`<li>`).text(`${Math.round(timeOfTravel / 60) ? Math.round(timeOfTravel / 60) : 'Less than zero'} minutes`));
+              addLyftCard(true, list);
+            }
+          });
+      })
+        .catch(function (error) {
+          console.log(error)
+        });
     });
+  }
 
-}
+  // Draw the route on the map
+  function drawRoute(e) {
 
-function drawRoute(e) {
-  // Prevent form submission
-  e.preventDefault();
-  initMap();
-  var directions = new google.maps.DirectionsService();
-  var renderer = new google.maps.DirectionsRenderer();
-  var address = document.getElementById('address').value;
-  var destination = document.getElementById('destination').value;
+    // Prevent form submission
+    e.preventDefault();
 
+    // Initialize the map
+    initMap();
 
-  directions.route({
-    origin: address,
-    destination: destination,
-    travelMode: 'DRIVING'
-  }, function (result, status) {
-    if (status == 'OK') {
-      renderer.setMap(map);
-      renderer.setDirections(result);
+    // Initialize the directions and renderer objects
+    var directions = new google.maps.DirectionsService();
+    var renderer = new google.maps.DirectionsRenderer();
+
+    // Get the to and from addresses
+    var address = document.getElementById('address').value;
+    var destination = document.getElementById('destination').value;
+
+    // Draw the directions
+    directions.route({
+      origin: address,
+      destination: destination,
+      travelMode: 'DRIVING'
+    }, function (result, status) {
+      if (status == 'OK') {
+        renderer.setMap(map);
+        renderer.setDirections(result);
+      }
+    });
+  }
+
+  // Bundle function for Submit button onclick callback
+  function onSubmit(e) {
+    geocode(e);
+    drawRoute(e);
+  }
+
+  // Helper function to compose and display the Lyft response card
+  function addLyftCard(goodResponse, listData) {
+    var output = $(`<div>`).addClass(`col s12 m6`).attr(`id`, `output`);
+    var card;
+    if (goodResponse) {
+      card = $(`<div>`).addClass(`card-panel red lighten-5`);
     }
-  });
-}
+    else {
+      card = $(`<div>`).addClass(`card-panel blue-grey lighten-5`);
+    }
+    var cardContent = $(`<div>`).addClass(`card-content black-text`);
+    var lyftImg = $(`<img>`)
+      .attr(`src`, `./assets/img/Lyft_Logo_Pink.png`)
+      .attr(`width`, `100`);
+    cardContent.append(lyftImg)
+    cardContent.append(listData);
+    card.append(cardContent);
+    output.append(card);
+    $(`#input-col`).addClass(`m6`);
+    $(`#main-row`).append(output);
+  }
+});
 
