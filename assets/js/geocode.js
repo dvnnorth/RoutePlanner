@@ -74,11 +74,6 @@ $(function () {
     var location = document.getElementById('address').value;
     var destination = document.getElementById('destination').value;
 
-    // Initialize output
-    if ($(`#output`)) {
-      $(`#output`).remove();
-    }
-
     var startLat, startLng, endLat, endLng;
 
     // Use Axios.js AJAX to get location geocode
@@ -140,7 +135,7 @@ $(function () {
             if (lyftResponse.data.cost_estimates.length === 0) {
               list = list = $(`<ul>`)
                 .append($(`<li>`).text(`Lyft can't take you on this trip...`));
-              addLyftCard(false, list);
+              addCard(false, list, 'lyft');
             }
             else {
               var fareMin = lyftResponse.data.cost_estimates[0].estimated_cost_cents_min;
@@ -148,11 +143,53 @@ $(function () {
               var distance = lyftResponse.data.cost_estimates[0].estimated_distance_miles;
               var timeOfTravel = lyftResponse.data.cost_estimates[0].estimated_duration_seconds;
               list = $(`<ul>`)
-                .append($(`<li>`).text(`$${fareMin / 100} - $${fareMax / 100}`))
+                .append($(`<li>`).text(`US $${fareMin / 100} - $${fareMax / 100}`))
                 .append($(`<li>`).text(`${distance} miles`))
                 .append($(`<li>`).text(`${Math.round(timeOfTravel / 60) ? Math.round(timeOfTravel / 60) : 'Less than zero'} minutes`));
-              addLyftCard(true, list);
+              addCard(true, list, 'lyft');
             }
+          })
+          .catch(function (error) {
+            list = list = $(`<ul>`)
+              .append($(`<li>`).text(`Lyft can't take you on this trip...`));
+            addCard(false, list, 'lyft');
+          });
+
+        // Uber call
+        var settings = {
+          "async": true,
+          "crossDomain": true,
+          "url": `https://cors-anywhere.herokuapp.com/https://api.uber.com/v1.2/estimates/price?start_latitude=${startLat}&start_longitude=${startLng}&end_latitude=${endLat}&end_longitude=${endLng}`,
+          "method": "GET",
+          "headers": {
+            "authorization": "Token v-UA8A2to_68Jm6Tpn03GQ0wi52HBB0oA1f1v91a",
+            "cache-control": "no-cache",
+            "postman-token": "a4c6b084-95d7-d347-a347-1875be72a17b"
+          }
+        };
+
+        axios(settings)
+          .then(function (uberResponse) {
+
+            // list will contain the data from the Uber response or an error message
+            var list;
+
+            // If the response from Uber has data, show data
+            var estimate = uberResponse.data.prices[0].estimate;
+            var distance = uberResponse.data.prices[0].distance;
+            var timeOfTravel = uberResponse.data.prices[0].duration;
+            list = $(`<ul>`)
+              .append($(`<li>`).text(estimate))
+              .append($(`<li>`).text(`${distance} miles`))
+              .append($(`<li>`).text(`${Math.round(timeOfTravel / 60) ? Math.round(timeOfTravel / 60) : 'Less than zero'} minutes`));
+            addCard(true, list, 'uber');
+
+          })
+          .catch(function (error) {
+            // If Uber returns an error
+            list = list = $(`<ul>`)
+              .append($(`<li>`).text(`Uber can't take you on this trip...`));
+            addCard(false, list, 'uber');
           });
       })
         .catch(function (error) {
@@ -193,30 +230,55 @@ $(function () {
 
   // Bundle function for Submit button onclick callback
   function onSubmit(e) {
+    // Shrink/resize input fields
+    if (!($(`#input-col`).hasClass(`l4`))) {
+      $(`#input-col`).addClass(`l4`);
+    }
+
+    // Initialize output
+    if ($(`#output`)) {
+      $(`#output`).remove();
+    }
+
     geocode(e);
     drawRoute(e);
   }
 
   // Helper function to compose and display the Lyft response card
-  function addLyftCard(goodResponse, listData) {
-    var output = $(`<div>`).addClass(`col s12 m6`).attr(`id`, `output`);
+  function addCard(goodResponse, listData, uberOrLyft) {
+    var output = $(`#output`);
+    // If output doesn't exist
+    if (output.length === 0) {
+      output = $(`<div>`).addClass(`col s12 m12 l4`).attr(`id`, `output`);
+    }
     var card;
-    if (goodResponse) {
-      card = $(`<div>`).addClass(`card-panel red lighten-5`);
+    if (goodResponse && uberOrLyft === 'lyft') {
+      card = $(`<div>`).addClass(`card-panel red lighten-5 card-height`);
+    }
+    else if (goodResponse && uberOrLyft === 'uber') {
+      card = $(`<div>`).addClass(`card-panel grey lighten-1 card-height`);
     }
     else {
       card = $(`<div>`).addClass(`card-panel blue-grey lighten-5`);
     }
     var cardContent = $(`<div>`).addClass(`card-content black-text`);
-    var lyftImg = $(`<img>`)
-      .attr(`src`, `./assets/img/Lyft_Logo_Pink.png`)
-      .attr(`width`, `100`);
-    cardContent.append(lyftImg)
+    var companyLogo = $(`<img>`);
+    if (uberOrLyft === 'uber') {
+      companyLogo
+        .attr(`src`, `./assets/img/uberLogo.png`)
+        .attr(`width`, `100`);
+    }
+    else {
+      companyLogo
+        .attr(`src`, `./assets/img/Lyft_Logo_Pink.png`)
+        .attr(`width`, `100`);
+    }
+    cardContent.append(companyLogo)
     cardContent.append(listData);
     card.append(cardContent);
     output.append(card);
-    $(`#input-col`).addClass(`m6`);
     $(`#main-row`).append(output);
   }
+
 });
 
