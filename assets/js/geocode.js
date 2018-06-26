@@ -205,7 +205,8 @@ $(function () {
 
   // Helper function to compose and display the Lyft response card
   function addLyftCard(goodResponse, listData) {
-    var output = $(`<div>`).addClass(`col s12 m6`).attr(`id`, `output`);
+    var row = $("<div>").addclass("row center");
+    var output = $(`<div>`).addClass(`col s12 m4 offset-m1`).attr(`id`, `output`);
     var card;
     if (goodResponse) {
       card = $(`<div>`).addClass(`card-panel red lighten-5`);
@@ -221,8 +222,28 @@ $(function () {
     cardContent.append(listData);
     card.append(cardContent);
     output.append(card);
-    $(`#input-col`).addClass(`m6`);
-    $(`#main-row`).append(output);
+    $(`#main-body`).append(output);
+  }
+
+  function addUberCard(goodResponse, listData) {
+    var row = $("<div>").addclass("row center");
+    var output = $(`<div>`).addClass(`col s12 m4 offset-m1`).attr(`id`, `output`);
+    var card;
+    if (goodResponse) {
+      card = $(`<div>`).addClass(`card-panel grey lighten-1`);
+    }
+    else {
+      card = $(`<div>`).addClass(`card-panel blue-grey lighten-5`);
+    }
+    var cardContent = $(`<div>`).addClass(`card-content black-text`);
+    var uberImg = $(`<img>`)
+      .attr(`src`, `./assets/img/uberlogo.png`)
+      .attr(`width`, `100`);
+    cardContent.append(uberImg)
+    cardContent.append(listData);
+    card.append(cardContent);
+    output.append(card);
+    $(`#main-body`).append(output);
   }
 });
 
