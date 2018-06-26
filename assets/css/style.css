@@ -15,3 +15,7 @@ body {
 #map {
     height: 500px;
 }
+
+.card-height {
+    height: 245px;
+}
