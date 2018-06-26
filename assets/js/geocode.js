@@ -144,6 +144,22 @@ $(function () {
               addLyftCard(true, list);
             }
           });
+          var settings = {
+            "async": true,
+            "crossDomain": true,
+            "url": `https://api.uber.com/v1.2/estimates/price?start_latitude=${startLat}&start_longitude=${startLng}&end_latitude=${endLat}&end_longitude=${endLng}`,
+            "method": "GET",
+            "headers": {
+              "authorization": "Token v-UA8A2to_68Jm6Tpn03GQ0wi52HBB0oA1f1v91a",
+              "cache-control": "no-cache",
+              "postman-token": "a4c6b084-95d7-d347-a347-1875be72a17b"
+            }
+          };
+          
+          $.ajax(settings).done(function (response) {
+            console.log(`Uber response`, response);
+          });
+
       })
         .catch(function (error) {
           console.log(error)
