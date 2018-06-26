@@ -64,11 +64,6 @@ $(function () {
     var location = document.getElementById('address').value;
     var destination = document.getElementById('destination').value;
 
-    // Initialize output
-    if ($(`#output`)) {
-      $(`#output`).remove();
-    }
-
     var startLat, startLng, endLat, endLng;
 
     // Use Axios.js AJAX to get location geocode
@@ -143,6 +138,11 @@ $(function () {
                 .append($(`<li>`).text(`${Math.round(timeOfTravel / 60) ? Math.round(timeOfTravel / 60) : 'Less than zero'} minutes`));
               addCard(true, list, 'lyft');
             }
+          })
+          .catch(function (error) {
+            list = list = $(`<ul>`)
+              .append($(`<li>`).text(`Lyft can't take you on this trip...`));
+            addCard(false, list, 'lyft');
           });
 
         // Uber call
@@ -161,27 +161,25 @@ $(function () {
         axios(settings)
           .then(function (uberResponse) {
 
-            console.log(uberResponse)
-
-            // list will contain the data from the Lyft response or an error message
+            // list will contain the data from the Uber response or an error message
             var list;
 
-            // If the response from Lyft has no data, show error, else show data
-            if (uberResponse.data.prices.length === 0) {
-              list = list = $(`<ul>`)
-                .append($(`<li>`).text(`Uber can't take you on this trip...`));
-              addCard(false, list, 'uber');
-            }
-            else {
-              var estimate = uberResponse.data.prices[0].estimate;
-              var distance = uberResponse.data.prices[0].distance;
-              var timeOfTravel = uberResponse.data.prices[0].duration;
-              list = $(`<ul>`)
-                .append($(`<li>`).text(estimate))
-                .append($(`<li>`).text(`${distance} miles`))
-                .append($(`<li>`).text(`${Math.round(timeOfTravel / 60) ? Math.round(timeOfTravel / 60) : 'Less than zero'} minutes`));
-              addCard(true, list, 'uber');
-            }
+            // If the response from Uber has data, show data
+            var estimate = uberResponse.data.prices[0].estimate;
+            var distance = uberResponse.data.prices[0].distance;
+            var timeOfTravel = uberResponse.data.prices[0].duration;
+            list = $(`<ul>`)
+              .append($(`<li>`).text(estimate))
+              .append($(`<li>`).text(`${distance} miles`))
+              .append($(`<li>`).text(`${Math.round(timeOfTravel / 60) ? Math.round(timeOfTravel / 60) : 'Less than zero'} minutes`));
+            addCard(true, list, 'uber');
+
+          })
+          .catch(function (error) {
+            // If Uber returns an error
+            list = list = $(`<ul>`)
+              .append($(`<li>`).text(`Uber can't take you on this trip...`));
+            addCard(false, list, 'uber');
           });
       })
         .catch(function (error) {
@@ -222,17 +220,27 @@ $(function () {
 
   // Bundle function for Submit button onclick callback
   function onSubmit(e) {
-    if( !($(`#input-col`).hasClass(`l4`)) ) {
+    // Shrink/resize input fields
+    if (!($(`#input-col`).hasClass(`l4`))) {
       $(`#input-col`).addClass(`l4`);
     }
+
+    // Initialize output
+    if ($(`#output`)) {
+      $(`#output`).remove();
+    }
+
     geocode(e);
     drawRoute(e);
   }
 
   // Helper function to compose and display the Lyft response card
   function addCard(goodResponse, listData, uberOrLyft) {
-    var row = $(`<div>`).addClass(`row center`);
-    var output = $(`<div>`).addClass(`col s12 m12 l4`).attr(`id`, `output`);
+    var output = $(`#output`);
+    // If output doesn't exist
+    if (output.length === 0) {
+      output = $(`<div>`).addClass(`col s12 m12 l4`).attr(`id`, `output`);
+    }
     var card;
     if (goodResponse && uberOrLyft === 'lyft') {
       card = $(`<div>`).addClass(`card-panel red lighten-5 card-height`);
