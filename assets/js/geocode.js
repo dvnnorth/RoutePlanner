@@ -226,9 +226,9 @@ $(function () {
     }
 
     // Initialize output
-    if ($(`#output`)) {
-      $(`#output`).remove();
-    }
+    var searchBars = $(`#input-col`)
+    $(`#main-row`).empty();
+    $(`#main-row`).append(searchBars);
 
     geocode(e);
     drawRoute(e);
@@ -236,11 +236,7 @@ $(function () {
 
   // Helper function to compose and display the Lyft response card
   function addCard(goodResponse, listData, uberOrLyft) {
-    var output = $(`#output`);
-    // If output doesn't exist
-    if (output.length === 0) {
-      output = $(`<div>`).addClass(`col s12 m12 l4`).attr(`id`, `output`);
-    }
+    var output = $(`<div>`).addClass(`col s12 m12 l4 card-output`);
     var card;
     if (goodResponse && uberOrLyft === 'lyft') {
       card = $(`<div>`).addClass(`card-panel red lighten-5 card-height`);
